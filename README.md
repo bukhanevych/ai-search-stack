@@ -26,20 +26,25 @@ The goal is to provide a self-hosted, privacy-first alternative to hosted AI sea
 
 ### Standard mode
 ```mermaid
-graph LR
-    Browser --> Perplexica
-    Perplexica --> SearXNG
-    SearXNG --> Internet
-    Perplexica --> Ollama
+graph TD;
+    Browser-->Perplexica;
+    Perplexica-->SearXNG;
+    SearXNG-->Internet;
+    Internet-->SearXNG;
+    SearXNG-->Ollama;
+```
 
 ### Privacy mode (Tor enabled)
 ```mermaid
-graph LR
-    Browser --> Perplexica
-    Perplexica --> SearXNG
-    SearXNG --> Tor
-    Tor --> Internet
-    Perplexica --> Ollama
+graph TD;
+    Browser-->Perplexica;
+    Perplexica-->SearXNG;
+    SearXNG-->Tor;
+    Tor-->Internet;
+    Internet-->Tor;
+    Tor-->SearXNG;
+    SearXNG-->Ollama;
+```
 
 ---
 
