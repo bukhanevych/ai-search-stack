@@ -4,7 +4,7 @@ Private, local-first AI search with optional anonymous routing.
 
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-production--ready-success)
+![Status](https://img.shields.io/badge/AI-stack-orange)
 
 ---
 
