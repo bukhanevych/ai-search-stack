@@ -1,0 +1,89 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: ai-search-redis
+    restart: unless-stopped
+    networks:
+      - ai_net
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  searxng:
+    image: searxng/searxng:latest
+    container_name: ai-search-searxng
+    restart: unless-stopped
+    networks:
+      - ai_net
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "${SEARXNG_PORT:-8080}:8080"
+    environment:
+      SEARXNG_BASE_URL: "${SEARXNG_BASE_URL:-http://localhost:8080/}"
+      UWSGI_WORKERS: "${SEARXNG_WORKERS:-2}"
+      UWSGI_THREADS: "${SEARXNG_THREADS:-2}"
+    volumes:
+      - ./config/searxng/settings.base.yml:/etc/searxng/settings.yml:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/search?q=test&format=json', timeout=10).read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai-search-ollama
+    restart: unless-stopped
+    networks:
+      - ai_net
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    gpus: all
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  perplexica:
+    image: itzcrazykns1337/perplexica:main
+    container_name: ai-search-perplexica
+    restart: unless-stopped
+    networks:
+      - ai_net
+    depends_on:
+      searxng:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    ports:
+      - "${PERPLEXICA_PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      SEARXNG_API_URL: "http://searxng:8080"
+      OLLAMA_API_URL: "http://ollama:11434"
+      NEXT_PUBLIC_API_URL: "${PERPLEXICA_PUBLIC_URL:-http://localhost:3000}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  ai_net:
+    name: ai-search-net
+    driver: bridge
+
+volumes:
+  ollama_data:
+    name: ai-search-ollama-data
+  redis_data:
+    name: ai-search-redis-data

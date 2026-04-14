@@ -1,0 +1,16 @@
+# Environment
+.env
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Temp
+*.tmp
+*.bak

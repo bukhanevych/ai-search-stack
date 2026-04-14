@@ -1,0 +1,20 @@
+services:
+  tor:
+    image: dperson/torproxy:latest
+    container_name: ai-search-tor
+    restart: unless-stopped
+    networks:
+      - ai_net
+    ports:
+      - "${TOR_SOCKS_PORT:-9050}:9050"
+    volumes:
+      - ./config/tor/torrc:/etc/tor/torrc:ro
+
+  searxng:
+    depends_on:
+      redis:
+        condition: service_healthy
+      tor:
+        condition: service_started
+    volumes:
+      - ./config/searxng/settings.tor.yml:/etc/searxng/settings.yml:ro
